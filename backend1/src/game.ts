@@ -1,13 +1,14 @@
 import {WebSocket} from 'ws';
-import {Chess} from 'chess.js';
+import {Chess,Move , Square} from 'chess.js';
+import {INIT_GAME, MOVE, GAME_OVER} from './message';
 export class Game{
     public player1:WebSocket;
     public player2:WebSocket;
     private board:Chess;
-    private moves:string[];
+    private movesCount:number;
     private currentPlayer:WebSocket;
     private gameOver:boolean;
-    private winner:WebSocket;
+    private winner:WebSocket | null;
     private starttime:Date;
 
 
@@ -15,28 +16,52 @@ export class Game{
         this.player1 = player1;
         this.player2 = player2;
         this.board = new Chess();
-        this.moves = [];
+        this.movesCount = 0;
         this.currentPlayer = player1;
         this.gameOver = false;
         this.winner = null;
         this.starttime = new Date();
+        this.player1.send(JSON.stringify({
+            type:INIT_GAME,
+            payload:{
+                color:'w',
+                board:this.board.fen()
+            }
+        }))
+        this.player2.send(JSON.stringify({
+            type:INIT_GAME,
+            payload:{
+                color:'b',
+                board:this.board.fen()
+            }
+        }))
 
     }
-    makemove(socket:WebSocket, move:{
+    makeMove(socket:WebSocket, move:{
         from:string,
-        to:string,
-        promotion:string
+        to:string
     }){
+        console.log("make move function indie")
+        console.log(this.board.move.length);
+        console.log(this.board.moves().length);
+        
         if(this.gameOver){
             return;
         }
+        if(this.currentPlayer !== socket){
+            return;
+        }
+        
         if(socket !== this.currentPlayer){
+            console.log("not current player");
             return;
         }
-        if(this.board.move.length%2 === 0 && socket!== this.player1){
+        if(this.movesCount %2 === 0 && socket!== this.player1){
+            console.log("not player1");
             return;
         }
-        if(this.board.move.length%2 === 1 && socket!== this.player2){
+        if(this.movesCount%2 === 1 && socket!== this.player2){
+            console.log("not player2");
             return;
         }
         try{
@@ -46,10 +71,40 @@ export class Game{
             return;
         }
         if(this.board.isGameOver()){
-            this.player1.emit(JSON.stringify({
-                type:GAME_OVER
+            this.player1.send(JSON.stringify({
+                type:GAME_OVER,
+                payload:{
+                    winner: this.board.turn() === 'w' ? this.player2 : this.player1,
+                }
+            }))
+            this.player2.send(JSON.stringify({
+                type:GAME_OVER,
+                payload:{
+                    winner: this.board.turn() === 'w' ? this.player2 : this.player1,
+                }
             }))
             return;
+        }
+        console.log(this.board.moves().length+"this is second sonsoile");
+        if(this.movesCount % 2 === 0){
+            this.player2.send(JSON.stringify({
+                type:MOVE,
+                payload:{
+                    move:move
+                }
+            }))
+            this.currentPlayer = this.player2;
+            this.movesCount++;
+        }
+        else{
+            this.player1.send(JSON.stringify({
+                type:MOVE,
+                payload:{
+                    move:move
+                }
+            }))
+            this.currentPlayer = this.player1;
+            this.movesCount++;
         }
         
     }

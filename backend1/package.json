@@ -2,7 +2,14 @@
   "dependencies": {
     "@types/ws": "^8.5.14",
     "chess.js": "^1.0.0",
-    "typescript": "^5.7.3",
+    "tsc": "^2.0.4",
     "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.1",
+    "typescript": "^5.7.3"
+  },
+  "scripts": {
+    "dev": "yarn tsc && node dist/index.js"
   }
 }

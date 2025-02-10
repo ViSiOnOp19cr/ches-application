@@ -1,5 +1,6 @@
 import { Game } from './game';
 import { WebSocket } from 'ws'; 
+import { INIT_GAME, MOVE } from './message';
 
 export class GameManager {
     private games: Game[]=[];
@@ -14,29 +15,38 @@ export class GameManager {
 
     }
     addUser(socket:WebSocket){
+        console.log('added user');
         this.users.push(socket);
+        this.handleMessage(socket, '');
     }
     removeUser(socket:WebSocket){
         this.users = this.users.filter(s=>s!==socket);
 
     }
     private handleMessage(socket: WebSocket, message: string) {
+        console.log("inside handler");
         socket.onmessage = (event) => {
-            const data = JSON.parse(event.data.toString());
-            if (data.type === INIT_GAME) {
+            console.log('inside onmessage');
+            console.log(event.data);
+            const message = JSON.parse(event.data.toString());
+            console.log("message is "+message);
+            if (message.type === INIT_GAME) {
                 if(this.pendingUser){
                     const game = new Game(this.pendingUser, socket);
                     this.games.push(game);
                     this.pendingUser = null;
                 }
                 else{
+                    console.log('pending user');
                     this.pendingUser = socket;
                 }
             }
-            if(data.type === MOVE){
+            if(message.type === MOVE){
                 const game = this.games.find(g=>g.player1 === socket || g.player2 === socket);
                 if(game){
-                    game.makeMove(socket, data.move);
+                    console.log('making move');
+                    console.log(message.move);
+                    game.makeMove(socket, message.move);
                 }
             }
         };
