@@ -1,30 +1,26 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.GameManager = void 0;
-const game_1 = require("./game");
 const message_1 = require("./message");
+const game_1 = require("./game");
+// User, Game
 class GameManager {
     constructor() {
-        this.games = [];
         this.games = [];
         this.pendingUser = null;
         this.users = [];
     }
     addUser(socket) {
-        console.log('added user');
         this.users.push(socket);
-        this.handleMessage(socket, '');
+        this.addHandler(socket);
     }
     removeUser(socket) {
-        this.users = this.users.filter(s => s !== socket);
+        this.users = this.users.filter(user => user !== socket);
+        // Stop the game here because the user left
     }
-    handleMessage(socket, message) {
-        console.log("inside handler");
-        socket.onmessage = (event) => {
-            console.log('inside onmessage');
-            console.log(event.data);
-            const message = JSON.parse(event.data.toString());
-            console.log("message is " + message);
+    addHandler(socket) {
+        socket.on("message", (data) => {
+            const message = JSON.parse(data.toString());
             if (message.type === message_1.INIT_GAME) {
                 if (this.pendingUser) {
                     const game = new game_1.Game(this.pendingUser, socket);
@@ -32,19 +28,18 @@ class GameManager {
                     this.pendingUser = null;
                 }
                 else {
-                    console.log('pending user');
                     this.pendingUser = socket;
                 }
             }
             if (message.type === message_1.MOVE) {
-                const game = this.games.find(g => g.player1 === socket || g.player2 === socket);
+                console.log("inside move");
+                const game = this.games.find(game => game.player1 === socket || game.player2 === socket);
                 if (game) {
-                    console.log('making move');
-                    console.log(message.move);
-                    game.makeMove(socket, message.move);
+                    console.log("inside makemove");
+                    game.makeMove(socket, message.payload.move);
                 }
             }
-        };
+        });
     }
 }
 exports.GameManager = GameManager;
