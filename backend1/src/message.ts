@@ -1,3 +1,10 @@
 export const GAME_OVER = 'GAME_OVER';
-export const INIT_GAME = 'init_game';
-export const MOVE = 'move';
+export const INIT_GAME = 'INIT_GAME';
+export const MOVE = 'MOVE';
+export const GAME_STATE = 'GAME_STATE';
+export const PLAYER_READY = 'PLAYER_READY';
+export const ERROR = 'ERROR';
+export const MATCHMAKING = 'MATCHMAKING';
+export const DRAW_OFFER = 'DRAW_OFFER';
+export const PLAYER_DISCONNECTED = 'PLAYER_DISCONNECTED';
+export const CHECK = 'CHECK';
