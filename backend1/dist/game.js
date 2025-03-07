@@ -12,7 +12,6 @@ class Game {
         this.startTime = new Date();
         this.gameId = `game_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
         console.log(`[Game ${this.gameId}] New game started between two players`);
-        // Initialize game for both players with their assigned colors
         this.player1.send(JSON.stringify({
             type: message_1.INIT_GAME,
             payload: {
@@ -29,10 +28,8 @@ class Game {
                 initialFen: this.board.fen()
             }
         }));
-        // Send initial game state to both players
         this.broadcastGameState();
     }
-    // Send current game state to both players
     broadcastGameState() {
         const gameState = {
             type: message_1.GAME_STATE,
@@ -51,17 +48,13 @@ class Game {
         this.player1.send(JSON.stringify(gameState));
         this.player2.send(JSON.stringify(gameState));
     }
-    // Handle a move from one of the players
     makeMove(socket, move) {
-        // Determine which player is making the move
         const isWhitePlayer = socket === this.player1;
         const isBlackPlayer = socket === this.player2;
         const currentTurn = this.board.turn();
         console.log(`[Game ${this.gameId}] Move attempt: ${move.from} to ${move.to} by ${isWhitePlayer ? 'white' : 'black'} player`);
-        // Validate that it's the correct player's turn
         if ((currentTurn === 'w' && !isWhitePlayer) || (currentTurn === 'b' && !isBlackPlayer)) {
             console.log(`[Game ${this.gameId}] Invalid move: Not ${currentTurn === 'w' ? 'white' : 'black'}'s turn`);
-            // Send error to the player who tried to move out of turn
             socket.send(JSON.stringify({
                 type: "ERROR",
                 payload: {
@@ -70,7 +63,6 @@ class Game {
             }));
             return;
         }
-        // Validate move and execute it
         try {
             const result = this.board.move(move);
             if (!result) {
@@ -78,7 +70,6 @@ class Game {
             }
             console.log(`[Game ${this.gameId}] Move successful: ${move.from} to ${move.to}`);
             this.moveCount++;
-            // Broadcast the move to both players
             const moveMessage = JSON.stringify({
                 type: message_1.MOVE,
                 payload: {
@@ -92,12 +83,10 @@ class Game {
             });
             this.player1.send(moveMessage);
             this.player2.send(moveMessage);
-            // Check for game-ending conditions
             if (this.board.isGameOver()) {
                 let winner = null;
                 let reason = "unknown";
                 if (this.board.isCheckmate()) {
-                    // Winner is the opposite of who just moved
                     winner = currentTurn === 'w' ? 'black' : 'white';
                     reason = "checkmate";
                     console.log(`[Game ${this.gameId}] Game over by checkmate. Winner: ${winner}`);
@@ -118,7 +107,6 @@ class Game {
                     }
                     console.log(`[Game ${this.gameId}] Game over by ${reason}.`);
                 }
-                // Send game over message
                 const gameOverMessage = JSON.stringify({
                     type: message_1.GAME_OVER,
                     payload: {
@@ -131,13 +119,11 @@ class Game {
                 this.player2.send(gameOverMessage);
             }
             else {
-                // Game continues - broadcast the updated state
                 this.broadcastGameState();
             }
         }
         catch (error) {
             console.error(`[Game ${this.gameId}] Error making move:`, error);
-            // Send error to the player who tried to make the invalid move
             socket.send(JSON.stringify({
                 type: "ERROR",
                 payload: {
@@ -146,13 +132,11 @@ class Game {
             }));
         }
     }
-    // Handle a player disconnection
     handleDisconnect(socket) {
         const isWhitePlayer = socket === this.player1;
         const playerColor = isWhitePlayer ? "white" : "black";
         const otherPlayer = isWhitePlayer ? this.player2 : this.player1;
         console.log(`[Game ${this.gameId}] Player (${playerColor}) disconnected`);
-        // Notify the other player
         otherPlayer.send(JSON.stringify({
             type: "PLAYER_DISCONNECTED",
             payload: {
