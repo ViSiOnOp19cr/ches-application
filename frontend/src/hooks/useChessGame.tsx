@@ -11,6 +11,7 @@ const PLAYER_READY = 'PLAYER_READY';
 const ERROR = 'ERROR';
 const CHECK = 'CHECK';
 
+
 export const useChessGame = () => {
     const socket = useSocket();
     const [chess, setChess] = useState<Chess>(new Chess());
