@@ -7,7 +7,9 @@ import { SignInPage } from './pages/auth/SignIn';
 import { SignUpPage } from './pages/auth/SignUp';
 import { ProfilePage } from './pages/auth/userProfile';
 import { useAuth, ClerkLoaded, ClerkLoading } from '@clerk/clerk-react';
-import {Navbar} from './components/NavBar'
+import {Navbar} from './components/NavBar';
+import {ComputerGame} from './pages/computerGame';
+
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isSignedIn, isLoaded } = useAuth();
   
@@ -56,6 +58,11 @@ function App() {
               <Route path="/game" element={
                 <ProtectedRoute>
                   <Game />
+                </ProtectedRoute>
+              } />
+              <Route path="/play-computer" element={
+                <ProtectedRoute>
+                  <ComputerGame/>
                 </ProtectedRoute>
               } />
             </Routes>
